@@ -2,45 +2,42 @@ package me.vahelce.vroleplay;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.List;
+import me.suchdifferent.data.MaskedPlayerData;
 
 public class ChatListener implements Listener {
-    private static final List<Player> maskedPlayers = new ArrayList<>();
-    private final String maskName = VRoleplay.getInstance().getConfig().getString("message.commands.mask.name");
+    private String maskName = null;
+	private VRoleplay plugin;
+    
+    public ChatListener(VRoleplay instance) {
+		this.plugin = instance;
+		maskName = plugin.getConfig().getString("message.commands.mask.name", "&eUnknown&r");
+	}
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
-        if (maskedPlayers.contains(event.getPlayer())) {
+    	Player player = event.getPlayer();
+        if ((MaskedPlayerData.getInstance().isMasked(player))) {
             synchronized (event) {
-                Player masked = event.getPlayer();
-                String oldName = masked.getCustomName();
+            	event.setCancelled(true);
+                String oldName = player.getCustomName();
                 if (oldName == null) oldName = event.getPlayer().getName();
-                masked.setCustomName(maskName);
+                player.setCustomName(maskName);
                 String finalOldName = oldName;
+                player.chat(event.getMessage());
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        masked.setCustomName(finalOldName);
+                        player.setCustomName(finalOldName);
                     }
-                }.runTaskLater(VRoleplay.getInstance(), 1L);
+                }.runTaskLater(plugin, 1L);
             }
         }
     }
 
-    public static boolean isPlayerMasked(Player player) {
-        return maskedPlayers.contains(player);
-    }
 
-    public static void addPlayerToMasks(Player player) {
-        maskedPlayers.add(player);
-    }
-
-    public static void removePlayerFromMasks(Player player) {
-        maskedPlayers.remove(player);
-    }
 }

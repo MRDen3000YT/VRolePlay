@@ -11,19 +11,24 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 public class OocChatCommand implements CommandExecutor {
-    private String rawMessage = "null";
-    private String errorMessage = "null";
-    private String nopermissions = "null";
-    private String notplayer = "null";
-    private int range = 0;
+    private String rawMessage = null;
+    private String errorMessage = null;
+    private String nopermissions = null;
+    private String notplayer = null;
+    private int range = 5;
+	private VRoleplay plugin;
 
-    public OocChatCommand() {
-        FileConfiguration configuration = VRoleplay.getInstance().getConfig();
+    public OocChatCommand(VRoleplay instance) {
+    	this.plugin = instance;
+    }
+    
+    public void loadConfiguration() {
+        FileConfiguration configuration = plugin.getConfig();
         rawMessage = configuration.getString("message.commands.ooc", "null");
         errorMessage = configuration.getString("message.general.error", "null");
         nopermissions = configuration.getString("message.general.nopermissions", "null");
         notplayer = configuration.getString("message.general.notplayer", "null");
-        range = configuration.getInt("range", 0);
+        range = configuration.getInt("range", 5);
     }
     
     @Override
